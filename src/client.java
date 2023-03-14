@@ -1,4 +1,3 @@
-import java.util.Arrays;
 import java.net.Socket;
 import java.io.*;
 
@@ -35,9 +34,38 @@ public class client{
             return true;
         }
 
+        // client mkdir </path/new_directory/on/server>
         else if (args[0].equals("mkdir")){
             if (args.length != 2){
                 System.err.println("client: the \"mkdir\" command takes exactly 1 argument!");
+                return false;
+            }
+            return true;
+        }
+
+        // rmdir </path/existing_directory/on/server>
+        else if (args[0].equals("rmdir")){
+            if (args.length != 2){
+                System.err.println("client: the \"rmdir\" command takes exactly 1 argument!");
+                return false; 
+            }
+            return true;
+        }
+
+        // client upload <path_on_client> </path/filename/on/server> 
+        else if (args[0].equals("upload")){
+            if (args.length != 3){
+                System.err.println("client: the \"upload\" command takes exactly 2 argument!");
+                return false;
+            }
+            return true;
+        }
+
+        // download </path/existing_filename/on/server> <path_on_client> 
+        else if (args[0].equals("download")){
+            if (args.length != 3){
+                System.err.println("client: the \"download\" command takes exactly 2 argument!");
+                return false;
             }
             return true;
         }
@@ -65,20 +93,9 @@ public class client{
         // System.out.println("Connection with Server Established");
     }
 
-    public boolean upload(String clientPath, String serverPath) throws IOException{
-        File clientFile = new File(clientPath); // open the file to be uploaded 
-
-        // check that the file is a file 
-        if (!clientFile.isFile()){
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * Ask server for contents of a directory 
-     * @param path location of the directory 
+     * @param path full filename path to the file server
      * @return True if execution is successful, False otherwise 
      * @throws IOException IO Streams 
      */
@@ -86,8 +103,9 @@ public class client{
         this.outToServer.writeChars("dir\n"); // send command to server 
         this.outToServer.writeChars(path + "\n"); // send path to the server
 
-        Boolean isValid = this.inFromServer.readBoolean(); // read whether the path is valid or not
-        if (isValid){
+        // server will reply with whether the operation succeeded or not 
+        Boolean success = this.inFromServer.readBoolean(); 
+        if (success){
             // print out the name of all the files 
             int numFiles = this.inFromServer.readInt(); // read the number of files 
             if (numFiles == 0){
@@ -96,17 +114,16 @@ public class client{
             for (int i=0; i<numFiles; i++){
                 System.out.println(readLine(inFromServer));
             }
-            return true;
         }
         else{
             System.err.println("dir: no such directory");
-            return false;
         }
+        return success;
     }
 
     /**
      * Ask the server to make a directory
-     * @param path location of the new directory 
+     * @param path full filename path to the file server
      * @return True if execution is successful, False otherwise 
      * @throws IOException IO streams
      */
@@ -114,32 +131,143 @@ public class client{
         this.outToServer.writeChars("mkdir\n"); // send command to server
         this.outToServer.writeChars(path + "\n"); // send path to the server
         
+        // server will reply with whether the operation succeeded or not 
         boolean success = this.inFromServer.readBoolean();
         if (success){
             System.out.println("mkdir: new directory created at " + path);
-            return true;
         }
         else{
             System.out.println("mkdir: " + path + " is not a valid path or already exists");
-            return false;
         }
+        return success;
     }
 
+    /**
+     * Ask the server to remove a directory 
+     * @param path full filename path to the file server
+     * @return True if execution is successful, False otherwise 
+     * @throws IOException IO streams
+     */
     public boolean rmdir(String path) throws IOException{
+        this.outToServer.writeChars("rmdir\n"); // send command to server
+        this.outToServer.writeChars(path + "\n"); // send path to the server
 
+        // server will reply with whether the operation succeeded or not 
         boolean success = this.inFromServer.readBoolean();
         if (success){
-            
-            return true;
+            System.out.println("rmdir: " + path + " is removed");
         }
         else{
+            System.out.println("rmdir: " + path + " is not a valid path or directory does not exists");
+        }
+        return success;
+    }
+
+    /**
+     * Ask the server to remove a file 
+     * @param path full filename path to the file server
+     * @return True if execution is successful, False otherwise 
+     * @throws IOException IO streams
+     */
+    public boolean rm(String path) throws IOException{
+        this.outToServer.writeChars("rm\n"); // send command to server
+        this.outToServer.writeChars(path + "\n"); // send path to the server
+
+        // server will reply with whether the operation succeeded or not 
+        boolean success = this.inFromServer.readBoolean();
+        if (success){
+            System.out.println("rm: " + path + " is removed");
+        }
+        else{
+            System.out.println("rm: " + path + " is not a valid path or file does not exists");
+        }
+        return success;
+    }
+
+    public boolean upload(String clientPath, String serverPath) throws IOException{
+        File clientFile = new File("." + clientPath); // open the file to be uploaded 
+
+        // check that the file is a file 
+        if (!clientFile.isFile()){
+            System.err.println("upload: client path " + clientPath + " is not a valid path or file does not exists");
             return false;
         }
+
+        this.outToServer.writeChars("upload\n"); // send command to the server 
+        this.outToServer.writeChars(serverPath + "\n"); // send server path to the server         
+
+        // check that the server path is valid 
+        boolean isValid = this.inFromServer.readBoolean();
+        if (!isValid){
+            System.err.println("upload: server path " + serverPath + " is not a valid path or file does not exists");
+            return false;
+        }
+
+        outToServer.writeLong(clientFile.length()); // let the server know the size of the file 
+        FileInputStream fileInputStream = new FileInputStream(clientFile);
+        long bytesUploaded = 0; // the number of bytes the server has recieved 
+
+        // check if we need to resume download
+        boolean resumeDownload = this.inFromServer.readBoolean();
+        if (resumeDownload){
+            bytesUploaded = this.inFromServer.readLong();
+            fileInputStream.skip(bytesUploaded);
+        }
+
+        // send file 1024 bytes at a time 
+        int bytes = 0; // number of bytes that was read from the file 
+        byte[] buffer = new byte[1024]; // buffer to hold the bytes that was read
+        while (bytesUploaded != clientFile.length()){
+            bytes = fileInputStream.read(buffer);
+            outToServer.write(buffer,0,bytes); 
+            outToServer.flush();
+            bytesUploaded += bytes;
+            System.out.println("upload: " + Long.toString(bytesUploaded) + " / " + Long.toString(clientFile.length())); // print the progress
+        }
+
+        fileInputStream.close();
+
+        return true;
+    }
+
+    public boolean download(String serverPath, String clientPath) throws IOException{
+
+        // check if the client path is valid // make sure that the parent directory 
+        File clientFile = new File("." + clientPath);
+        File directory = clientFile.getParentFile(); 
+        if (!directory.exists() || clientFile.isDirectory()){
+            System.err.println("download: client path " + clientPath + " is not a valid path or file does not exists");
+            return false;
+        }
+
+        this.outToServer.writeChars("download\n"); // send command to the server 
+        this.outToServer.writeChars(serverPath + "\n"); // send path to the server
+
+        Boolean isValid = this.inFromServer.readBoolean();
+        if (!isValid){
+            System.err.println("download: server path " + serverPath + " is not a valid path or file does not exists");
+            return false;
+        }
+
+        FileOutputStream fileOutputStream = new FileOutputStream(clientFile);
+        long fileSize = this.inFromServer.readLong(); // get the file size from the server
+
+        long bytesDownloaded = 0; // number of bytes that has been written to the file so far
+        byte[] buffer = new byte[1024]; // buffer to hold bytes from server
+        int bytes = 0;
+        while(bytesDownloaded != fileSize && (bytes = this.inFromServer.read(buffer)) > -1){
+            fileOutputStream.write(buffer,0,bytes);
+            bytesDownloaded += bytes;
+            System.out.println("download: " + Long.toString(bytesDownloaded) + " / " + Long.toString(fileSize)); // print the progress
+        } 
+        fileOutputStream.close();
+        
+        return true;
     }
 
     /**
      * Close the Client's socket (Shutdown the Client)
-     * @throws IOException
+     * @throws IOException socket 
      */
     public void shutdownClient() throws IOException{
         this.serverConnection.close();
@@ -148,18 +276,21 @@ public class client{
     /**
      * Ask the Server to Shutdown
      * @return True if execution is successful, False otherwise 
-     * @throws IOException
+     * @throws IOException IO streams
      */
     public boolean shutdownServer() throws IOException{
         this.outToServer.writeChars("shutdown\n"); // send command to server 
     
         // read the reply from the server 
         // server will reply with true if shutdown is successful and false otherwise 
-        Boolean reply = this.inFromServer.readBoolean();
-        if (reply){
-            System.out.println("Server has Shutdown");
+        Boolean success = this.inFromServer.readBoolean();
+        if (success){
+            System.out.println("shutdown: server has shutdown");
         }
-        return reply;
+        else{
+            System.out.println("shutdown: server refuses to shutdown");
+        }
+        return success;
     }
 
     /**
@@ -211,8 +342,14 @@ public class client{
                 case "mkdir":
                     success = myClient.mkdir(args[1]);
                     break;
+                case "rmdir":
+                    success = myClient.rmdir(args[1]);
+                    break;
                 case "upload":
                     success = myClient.upload(args[1], args[2]);
+                    break;
+                case "download":
+                    success = myClient.download(args[1], args[2]);
                     break;
             }
 
@@ -227,41 +364,6 @@ public class client{
             System.out.println(e);
         }
 
-
-
-
-        /* 
-        // upload command
-        if (args[0].equals("upload")){
-
-
-            try{
-                Socket clientSocket = new Socket("Jacobs-Air", port);
-
-                // send file to the server
-                outToServer.writeLong(clientFile.length()); // let the server know the length of the file 
-
-                int bytes = 0;
-                FileInputStream fileInputStream = new FileInputStream(clientFile);
-
-                // break file into chunks
-                byte[] buffer = new byte[4*1024];
-                while ((bytes=fileInputStream.read(buffer))!=-1){
-                    outToServer.write(buffer,0,bytes);
-                    outToServer.flush();
-                }
-
-                fileInputStream.close();
-
-
-                // close the socket when done
-                clientSocket.close();
-            }
-            catch(IOException e){
-                System.out.println(e);
-            }
-        }
-        */
         System.exit(0);
     }
 }

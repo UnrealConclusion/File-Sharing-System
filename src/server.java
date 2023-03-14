@@ -77,6 +77,7 @@ public class server{
 
         public void run(){
             try {
+                // run the command
                 switch(this.command){
                     case "dir":
                         this.dir();
@@ -84,7 +85,21 @@ public class server{
                     case "mkdir":
                         this.mkdir();
                         break;
+                    case "rmdir":
+                        this.rmdir();
+                        break;
+                    case "rm":
+                        this.rm();
+                        break;
+                    case "upload":
+                        this.upload();
+                        break;
+                    case "download":
+                        this.download();
+                        break;
                 }
+
+                this.clientConnection.close(); // close the connection 
             } catch (Exception e) {
                 System.out.println(this.command + ": " + e);
             }
@@ -134,18 +149,109 @@ public class server{
         private void mkdir() throws IOException{
             String path = readLine(this.inFromClient); 
 
-            // check that the path is valid and directory does not already exist
+            // try to make the directory and let the client know whether the operation succeeded or not
             File directory = new File("." + path);
-            if (directory.mkdir()){ // let the client know whether the operation succeeded or not
+            if (directory.mkdir()){ 
                 this.outToClient.writeBoolean(true);
             }
             else{
                 this.outToClient.writeBoolean(false);
             }
-
-
         }
 
+        private void rmdir() throws IOException{
+            String path = readLine(this.inFromClient); 
+
+            // try to delete the directory and let the client know whether the operation succeded or not
+            File directory = new File("." + path);
+            if (directory.delete()){
+                this.outToClient.writeBoolean(true);
+            }
+            else{
+                this.outToClient.writeBoolean(false);
+            }
+        }
+
+        private void rm() throws IOException{
+            String path = readLine(this.inFromClient); 
+
+            // try to delete the file and let the client know whether the operation succeded or not
+            File file = new File("." + path);
+            if (file.delete()){
+                this.outToClient.writeBoolean(true);
+            }
+            else{
+                this.outToClient.writeBoolean(false);
+            }
+        }
+
+        private void upload() throws IOException{
+            String path = readLine(inFromClient);
+
+            File file = new File("." + path);
+
+            // check that the enclosing directory is valid 
+            File directory = file.getParentFile();
+            if (directory.exists() && !file.isDirectory()){ 
+                this.outToClient.writeBoolean(true);
+                long fileSize = this.inFromClient.readLong(); // read the file size from the client 
+                long bytesDownloaded = 0; // number of bytes that has been written to the file so far
+                FileOutputStream fileOutputStream; 
+
+                // check if the file already exists and if the file is not as long as it should be
+                if (file.exists() && file.length() < fileSize){
+                    System.out.println("Resuming download");
+                    bytesDownloaded = file.length();
+                    this.outToClient.writeBoolean(true); // tell the client to resume upload 
+                    this.outToClient.writeLong(bytesDownloaded); // tell the client how many bytes we have already 
+                    fileOutputStream = new FileOutputStream(file, true); // write to end of the existing file
+                }
+                else{
+                    this.outToClient.writeBoolean(false); // tell the client to upload from the beginning 
+                    fileOutputStream = new FileOutputStream(file); // create a new file 
+                }
+
+                byte[] buffer = new byte[1024]; // buffer to hold bytes from client 
+                int bytes = 0;
+                while(bytesDownloaded != fileSize && (bytes = this.inFromClient.read(buffer)) > -1){
+                    fileOutputStream.write(buffer,0,bytes);
+                    bytesDownloaded += bytes;
+                }
+                fileOutputStream.close();
+            }
+            else{
+                this.outToClient.writeBoolean(false);
+            }
+        }
+
+        public void download() throws IOException{
+            String path = readLine(this.inFromClient);
+            File file = new File("." + path);
+
+            // check if file exists and is not a directory 
+            if (file.exists() && !file.isDirectory()){
+                this.outToClient.writeBoolean(true); // let the client know that the file exists
+                this.outToClient.writeLong(file.length()); // let the client know the file size
+
+                FileInputStream fileInputStream = new FileInputStream(file);
+                long bytesUploaded = 0; // number of bytes the client has recieved 
+
+                // send file 1024 bytes at a time
+                int bytes = 0; // number of bytes that was read from the file 
+                byte[] buffer = new byte[1024]; // buffer to hold the bytes that was read
+                while (bytesUploaded != file.length()){
+                    bytes = fileInputStream.read(buffer);
+                    outToClient.write(buffer,0,bytes); 
+                    outToClient.flush();
+                    bytesUploaded += bytes;
+                }
+
+                fileInputStream.close();
+            }
+            else{
+                this.outToClient.writeBoolean(false);
+            }
+        }
     }
 
     public static void main(String[] args) {
@@ -153,54 +259,7 @@ public class server{
             new server().start();;
         }catch(Exception e){
             System.out.println(e);
+            e.printStackTrace();
         }
-
-        /* 
-        // start command
-        if (args[0].equals("start")){
-            int port = 8000;
-            try{
-
-                // read the command from the client 
-                String command = readLine(inFromClient);
-                System.out.println(command);
-
-                // read the server file path
-                String serverPath = readLine(inFromClient);     
-                
-                System.out.println(serverPath);
-       
-                // read size of file 
-                Long fileSize = inFromClient.readLong();
-                System.out.println(fileSize);
-
-                File myFile = new File("/Users/jacoblin/Desktop/File-Sharing-System/bin/server/testrun.txt");
-                myFile.createNewFile();
-
-                FileOutputStream fileOutputStream = new FileOutputStream(myFile);
-                byte[] buffer = new byte[4*1024];
-                int bytes = 0;
-
-                while (fileSize > 0 && (bytes = inFromClient.read(buffer, 0, (int)Math.min(buffer.length, fileSize))) != -1) {
-                    fileOutputStream.write(buffer,0,bytes);
-                    fileSize -= bytes;      // read upto file size
-                }
-
-                fileOutputStream.close();
-
-                // close the socket when done
-                serverSocket.close();
-            }
-            catch(IOException e){
-                System.out.println(e);
-            }
-        }
-
-
-        // command not found
-        else{
-            System.out.println("Invalid Command");
-        }
-        */
     }
 }
