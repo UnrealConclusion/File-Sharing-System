@@ -126,7 +126,7 @@ public class server{
         private void dir() throws IOException{
             String path = readLine(this.inFromClient); 
             File directory = new File("." + path); 
-    
+            System.out.println(path);
             // check that the path exists and is a directory 
             if (directory.exists() && directory.isDirectory()){
                 this.outToClient.writeBoolean(true); // let the client know that the path is valid
@@ -192,7 +192,7 @@ public class server{
 
             // check that the enclosing directory is valid 
             File directory = file.getParentFile();
-            if (directory.exists() && !file.isDirectory()){ 
+            if (directory.exists()){ 
                 this.outToClient.writeBoolean(true);
                 long fileSize = this.inFromClient.readLong(); // read the file size from the client 
                 long bytesDownloaded = 0; // number of bytes that has been written to the file so far
@@ -200,7 +200,6 @@ public class server{
 
                 // check if the file already exists and if the file is not as long as it should be
                 if (file.exists() && file.length() < fileSize){
-                    System.out.println("Resuming download");
                     bytesDownloaded = file.length();
                     this.outToClient.writeBoolean(true); // tell the client to resume upload 
                     this.outToClient.writeLong(bytesDownloaded); // tell the client how many bytes we have already 
@@ -216,6 +215,7 @@ public class server{
                 while(bytesDownloaded != fileSize && (bytes = this.inFromClient.read(buffer)) > -1){
                     fileOutputStream.write(buffer,0,bytes);
                     bytesDownloaded += bytes;
+                    this.outToClient.writeBoolean(true);
                 }
                 fileOutputStream.close();
             }
@@ -255,11 +255,22 @@ public class server{
     }
 
     public static void main(String[] args) {
-        try{
-            new server().start();;
-        }catch(Exception e){
-            System.out.println(e);
-            e.printStackTrace();
+        if (args.length == 0){
+            System.err.println("server: no command was given!");
         }
+
+        if (args[0].equals("start")){
+            try{
+                new server().start();;
+            }catch(Exception e){
+                System.out.println(e);
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        else {
+            System.err.println("server: command not supported!");
+        }
+        System.exit(0);
     }
 }

@@ -76,6 +76,13 @@ public class client{
         }
     }
     
+
+    private static String sanitizePath(String path){
+        if (path.charAt(0) != '/'){
+            path = '/' + path;
+        }
+        return path;
+    }
     //---------- Client Methods & Variables ----------
 
     private Socket serverConnection;
@@ -184,6 +191,13 @@ public class client{
         return success;
     }
 
+    /**
+     * Check that both paths are valid then send the file from the client to the server in blocks of 1024 bytes
+     * @param clientPath full filename path to the client file 
+     * @param serverPath full filename path to the file server
+     * @return True if execution is successful, False otherwise 
+     * @throws IOException IO streams
+     */
     public boolean upload(String clientPath, String serverPath) throws IOException{
         File clientFile = new File("." + clientPath); // open the file to be uploaded 
 
@@ -217,12 +231,18 @@ public class client{
         // send file 1024 bytes at a time 
         int bytes = 0; // number of bytes that was read from the file 
         byte[] buffer = new byte[1024]; // buffer to hold the bytes that was read
+        bytes = fileInputStream.read(buffer);
         while (bytesUploaded != clientFile.length()){
-            bytes = fileInputStream.read(buffer);
-            outToServer.write(buffer,0,bytes); 
-            outToServer.flush();
-            bytesUploaded += bytes;
-            System.out.println("upload: " + Long.toString(bytesUploaded) + " / " + Long.toString(clientFile.length())); // print the progress
+            
+            this.outToServer.write(buffer,0,bytes); 
+            this.outToServer.flush();
+            
+            // server comfirmation that the bytes were recieved 
+            if (this.inFromServer.readBoolean()){
+                bytesUploaded += bytes;
+                System.out.println("upload: " + Long.toString(bytesUploaded) + " / " + Long.toString(clientFile.length())); // print the progress
+                bytes = fileInputStream.read(buffer);
+            }
         }
 
         fileInputStream.close();
@@ -230,6 +250,13 @@ public class client{
         return true;
     }
 
+    /**
+     * Check that both paths are valid then ask the server to send the client the file in blocks of 1024 bytes 
+     * @param serverPath full filename path to the file server
+     * @param clientPath full filename path to the client file 
+     * @return True if execution is successful, False otherwise 
+     * @throws IOException IO streams
+     */
     public boolean download(String serverPath, String clientPath) throws IOException{
 
         // check if the client path is valid // make sure that the parent directory 
@@ -249,10 +276,22 @@ public class client{
             return false;
         }
 
-        FileOutputStream fileOutputStream = new FileOutputStream(clientFile);
+        FileOutputStream fileOutputStream;
         long fileSize = this.inFromServer.readLong(); // get the file size from the server
-
         long bytesDownloaded = 0; // number of bytes that has been written to the file so far
+
+        // check if we need to resume download 
+        if (clientFile.exists() && clientFile.length() < fileSize){
+            bytesDownloaded = clientFile.length();
+            this.outToServer.writeBoolean(true); // tell the server to resume upload 
+            this.outToServer.writeLong(bytesDownloaded); // tell the server how many bytes we have already 
+            fileOutputStream = new FileOutputStream(clientFile, true); // write to end of the existing file
+            System.out.println("download: resuming download");
+        }
+        else{
+            fileOutputStream = new FileOutputStream(clientFile); // overwrite the existing file
+        }
+
         byte[] buffer = new byte[1024]; // buffer to hold bytes from server
         int bytes = 0;
         while(bytesDownloaded != fileSize && (bytes = this.inFromServer.read(buffer)) > -1){
@@ -337,19 +376,19 @@ public class client{
                     success = myClient.shutdownServer();
                     break;
                 case "dir":
-                    success = (args.length == 1) ? myClient.dir("") : myClient.dir(args[1]); // if dir is called with no additional argument, pass in the current directory as the path
+                    success = (args.length == 1) ? myClient.dir(".") : myClient.dir(sanitizePath(args[1])); // if dir is called with no additional argument, pass in the current directory as the path
                     break;
                 case "mkdir":
-                    success = myClient.mkdir(args[1]);
+                    success = myClient.mkdir(sanitizePath(args[1]));
                     break;
                 case "rmdir":
-                    success = myClient.rmdir(args[1]);
+                    success = myClient.rmdir(sanitizePath(args[1]));
                     break;
                 case "upload":
-                    success = myClient.upload(args[1], args[2]);
+                    success = myClient.upload(sanitizePath(args[1]), sanitizePath(args[2]));
                     break;
                 case "download":
-                    success = myClient.download(args[1], args[2]);
+                    success = myClient.download(sanitizePath(args[1]), sanitizePath(args[2]));
                     break;
             }
 
