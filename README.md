@@ -26,15 +26,17 @@ Server Commands:
     java -cp <path_to_pa1.jar> server start <port_number>
 
 ### Instructions for running the Server
-    1. starting from the directory where pa1.jar is located
-    2. make a new directory for the server to use as storage 
-    3. enter the new directory 
-    4. call the start command with the server's port number as an argument 
+1. starting from the directory where pa1.jar is located
+2. make a new directory for the server to use as storage 
+3. enter the new directory 
+4. call the start command with the server's port number as an argument 
 
-    Example:
-        mkdir server     
-        cd server 
-        java -cp ../pa1.jar server start 8000 
+Example:
+```
+   mkdir server     
+   cd server 
+   java -cp ../pa1.jar server start 8000 
+ ```
 
 ### Instructions for running the Client:
 1. starting from the directory where pa1.jar is located
@@ -44,7 +46,9 @@ Server Commands:
 5. call commands from here 
 
 Example:
+```
    mkdir client
    cd client 
    export PA1_SERVER=localhost:8000
    java -cp ../pa1.jar client <command> <argument_1> <argument_2> 
+```
