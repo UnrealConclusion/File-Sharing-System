@@ -13,9 +13,10 @@
    * (a file with less bytes than the one that they will be recieving)
 
 ## Client Commands
-   shut down the client
+shut down the client
    ``` java -cp <path_to_pa1.jar> client shutdown ```
-    - java -cp <path_to_pa1.jar> client dir 
+list the content of the root directory 
+   ``` java -cp <path_to_pa1.jar> client dir ```
     - java -cp <path_to_pa1.jar> client dir </path/existing_directory/on/server> 
     - java -cp <path_to_pa1.jar> client mkdir </path/new_directory/on/server> 
     - java -cp <path_to_pa1.jar> client rmdir </path/existing_directory/on/server>
