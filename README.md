@@ -4,13 +4,13 @@
 - Location of the Server's / Client's storage folder is the directory that it is being runned from 
     * the Server / Client treats the folder it is being runned from as its root directory "/"
 
-Note that:
-    * the each client can only execute a single command at a time 
-        (i.e cannot do "client mkdir folder1 folder2" to create 2 folders with a single command)
-    * there is no support for case-sensitive 
-        (All input should be lowercase)
-    * download / upload will resume if the recieving party has a file of the same name with a smaller file size 
-        (a file with less bytes than the one that they will be recieving)
+## Note that
+- the each client can only execute a single command at a time 
+   * (i.e cannot do "client mkdir folder1 folder2" to create 2 folders with a single command)
+- there is no support for case-sensitive 
+   * (All input should be lowercase)
+- download / upload will resume if the recieving party has a file of the same name with a smaller file size 
+   * (a file with less bytes than the one that they will be recieving)
 
 Client Commands:
     - java -cp <path_to_pa1.jar> client shutdown 
