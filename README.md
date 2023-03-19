@@ -25,7 +25,7 @@ Client Commands:
 Server Commands:
     java -cp <path_to_pa1.jar> server start <port_number>
 
-Instructions for running the Server:
+### Instructions for running the Server:
     1. starting from the directory where pa1.jar is located
     2. make a new directory for the server to use as storage 
     3. enter the new directory 
