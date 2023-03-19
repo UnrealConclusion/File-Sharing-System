@@ -52,6 +52,17 @@ public class client{
         return true;
     }
 
+    /**
+     * Alter paths that start at the root directory (/) to start from the current working directory (./) instead
+     * @param path path to be altered 
+     * @return path that starts in the current working directory
+     */
+    private static String sanitizePath(String path){
+        if (path.charAt(0) == File.separatorChar || path.charAt(0) == '/'){
+            path = "." + path;
+        }
+        return path;
+    }
     //-------------------------------------------------- Client Methods & Variables --------------------------------------------------
 
     /**
@@ -83,7 +94,7 @@ public class client{
             this.serverConnection = new Socket(host, port);
             this.inFromServer = new DataInputStream(this.serverConnection.getInputStream());
             this.outToServer = new DataOutputStream(this.serverConnection.getOutputStream());
-            System.out.println("client: connected to the server");
+            // System.out.println("client: connected to the server");
         } catch(IOException e){
             System.err.println("client: cannot connect to server (" + e + ")");
             System.exit(1);
@@ -123,14 +134,6 @@ public class client{
             System.err.println("client: error shutting down server (" + e + ")");
         } 
         return OK;
-    }
-
-    /**
-     * Ask server for the contents of its root directory
-     * @return true if successful, false otherwise
-     */
-    private boolean dir() {
-        return this.dir("/");
     }
 
     /***
@@ -393,22 +396,22 @@ public class client{
                 success = myClient.shutdownServer();
                 break;
             case "dir":
-                success = (args.length == 1) ? myClient.dir() : myClient.dir(args[1]); 
+                success = (args.length == 1) ? myClient.dir(sanitizePath("/")) : myClient.dir(sanitizePath(args[1])); 
                 break;
             case "mkdir":
-                success = myClient.mkdir(args[1]);
+                success = myClient.mkdir(sanitizePath(args[1]));
                 break;
             case "rmdir":
-                success = myClient.rmdir(args[1]);
+                success = myClient.rmdir(sanitizePath(args[1]));
                 break;
             case "rm":
-                success = myClient.rm(args[1]);
+                success = myClient.rm(sanitizePath(args[1]));
                 break;
             case "upload":
-                success = myClient.upload(args[1], args[2]);
+                success = myClient.upload(sanitizePath(args[1]), sanitizePath(args[2]));
                 break;
             case "download":
-                success = myClient.download(args[1], args[2]);
+                success = myClient.download(sanitizePath(args[1]), sanitizePath(args[2]));
                 break;
         }
 
