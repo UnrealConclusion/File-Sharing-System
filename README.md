@@ -13,23 +13,23 @@ Note that:
         (a file with less bytes than the one that they will be recieving)
 
 Client Commands:
-    java -cp <path_to_pa1.jar> client shutdown 
-    java -cp <path_to_pa1.jar> client dir 
-    java -cp <path_to_pa1.jar> client dir </path/existing_directory/on/server> 
-    java -cp <path_to_pa1.jar> client mkdir </path/new_directory/on/server> 
-    java -cp <path_to_pa1.jar> client rmdir </path/existing_directory/on/server>
-    java -cp <path_to_pa1.jar> client rm </path/existing_filename/on/server> 
-    java -cp <path_to_pa1.jar> client upload <path_on_client> </path/filename/on/server> 
-    java -cp <path_to_pa1.jar> client download </path/existing_filename/on/server> <path_on_client>
+    - java -cp <path_to_pa1.jar> client shutdown 
+    - java -cp <path_to_pa1.jar> client dir 
+    - java -cp <path_to_pa1.jar> client dir </path/existing_directory/on/server> 
+    - java -cp <path_to_pa1.jar> client mkdir </path/new_directory/on/server> 
+    - java -cp <path_to_pa1.jar> client rmdir </path/existing_directory/on/server>
+    - java -cp <path_to_pa1.jar> client rm </path/existing_filename/on/server> 
+    - java -cp <path_to_pa1.jar> client upload <path_on_client> </path/filename/on/server> 
+    - java -cp <path_to_pa1.jar> client download </path/existing_filename/on/server> <path_on_client>
 
 Server Commands:
     java -cp <path_to_pa1.jar> server start <port_number>
 
 Instructions for running the Server:
-    1. starting from the directory where pa1.jar is located
-    2. make a new directory for the server to use as storage 
-    3. enter the new directory 
-    4. call the start command with the server's port number as an argument 
+    - 1. starting from the directory where pa1.jar is located
+    - 2. make a new directory for the server to use as storage 
+    - 3. enter the new directory 
+    - 4. call the start command with the server's port number as an argument 
 
     Example:
         mkdir server     
@@ -37,11 +37,11 @@ Instructions for running the Server:
         java -cp ../pa1.jar server start 8000 
 
 Instructions for running the Client:
-    1. starting from the directory where pa1.jar is located
-    2. make a new directory for the client to use as storage 
-    3. enter the new directoy 
-    4. set environment variable PA1_SERVER
-    5. call commands from here 
+    - 1. starting from the directory where pa1.jar is located
+    - 2. make a new directory for the client to use as storage 
+    - 3. enter the new directoy 
+    - 4. set environment variable PA1_SERVER
+    - 5. call commands from here 
 
     Example:
         mkdir client
