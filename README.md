@@ -1,10 +1,10 @@
 # File-Sharing-System
 
-## The program assumes that
+### The program assumes that
 - Location of the Server's / Client's storage folder is the directory that it is being runned from 
     * the Server / Client treats the folder it is being runned from as its root directory "/"
 
-## Note that
+### Note that
 - the each client can only execute a single command at a time 
    * (i.e cannot do "client mkdir folder1 folder2" to create 2 folders with a single command)
 - there is no support for case-sensitive 
@@ -12,8 +12,9 @@
 - download / upload will resume if the recieving party has a file of the same name with a smaller file size 
    * (a file with less bytes than the one that they will be recieving)
 
-Client Commands:
-    - java -cp <path_to_pa1.jar> client shutdown 
+## Client Commands
+   shut down the client
+   ``` java -cp <path_to_pa1.jar> client shutdown ```
     - java -cp <path_to_pa1.jar> client dir 
     - java -cp <path_to_pa1.jar> client dir </path/existing_directory/on/server> 
     - java -cp <path_to_pa1.jar> client mkdir </path/new_directory/on/server> 
