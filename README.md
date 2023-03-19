@@ -1,8 +1,8 @@
 # File-Sharing-System
 
-The program assumes that:
-    - Location of the Server's / Client's storage folder is the directory that it is being runned from 
-        - the Server / Client treats the folder it is being runned from as its root directory "/"
+## The program assumes that
+- Location of the Server's / Client's storage folder is the directory that it is being runned from 
+    * the Server / Client treats the folder it is being runned from as its root directory "/"
 
 Note that:
     * the each client can only execute a single command at a time 
@@ -25,7 +25,7 @@ Client Commands:
 Server Commands:
     java -cp <path_to_pa1.jar> server start <port_number>
 
-### Instructions for running the Server:
+### Instructions for running the Server
     1. starting from the directory where pa1.jar is located
     2. make a new directory for the server to use as storage 
     3. enter the new directory 
