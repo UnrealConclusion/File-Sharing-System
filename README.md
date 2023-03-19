@@ -14,18 +14,18 @@
 
 ## Client Commands
 - shut down the client
-   ``` java -cp <path_to_pa1.jar> client shutdown ```
+- java -cp <path_to_pa1.jar> client shutdown ```
 - list the content of the root directory 
-   ``` java -cp <path_to_pa1.jar> client dir ```
-    - java -cp <path_to_pa1.jar> client dir </path/existing_directory/on/server> 
-    - java -cp <path_to_pa1.jar> client mkdir </path/new_directory/on/server> 
-    - java -cp <path_to_pa1.jar> client rmdir </path/existing_directory/on/server>
-    - java -cp <path_to_pa1.jar> client rm </path/existing_filename/on/server> 
-    - java -cp <path_to_pa1.jar> client upload <path_on_client> </path/filename/on/server> 
-    - java -cp <path_to_pa1.jar> client download </path/existing_filename/on/server> <path_on_client>
+- java -cp <path_to_pa1.jar> client dir ```
+- java -cp <path_to_pa1.jar> client dir </path/existing_directory/on/server> 
+- java -cp <path_to_pa1.jar> client mkdir </path/new_directory/on/server> 
+- java -cp <path_to_pa1.jar> client rmdir </path/existing_directory/on/server>
+- java -cp <path_to_pa1.jar> client rm </path/existing_filename/on/server> 
+- java -cp <path_to_pa1.jar> client upload <path_on_client> </path/filename/on/server> 
+- java -cp <path_to_pa1.jar> client download </path/existing_filename/on/server> <path_on_client>
 
-Server Commands:
-    java -cp <path_to_pa1.jar> server start <port_number>
+## Server Commands
+- java -cp <path_to_pa1.jar> server start <port_number>
 
 ### Instructions for running the Server
 1. starting from the directory where pa1.jar is located
