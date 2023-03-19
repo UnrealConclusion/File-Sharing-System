@@ -36,15 +36,15 @@ Server Commands:
         cd server 
         java -cp ../pa1.jar server start 8000 
 
-Instructions for running the Client:
+### Instructions for running the Client:
 1. starting from the directory where pa1.jar is located
 2. make a new directory for the client to use as storage 
 3. enter the new directoy 
 4. set environment variable PA1_SERVER
 5. call commands from here 
 
-    Example:
-        mkdir client
-        cd client 
-        export PA1_SERVER=localhost:8000
-        java -cp ../pa1.jar client <command> <argument_1> <argument_2> 
+Example:
+   mkdir client
+   cd client 
+   export PA1_SERVER=localhost:8000
+   java -cp ../pa1.jar client <command> <argument_1> <argument_2> 
